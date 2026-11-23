@@ -1,5 +1,4 @@
 import httpx
-from httpx import delete
 
 from tools.fakers import get_random_email
 
