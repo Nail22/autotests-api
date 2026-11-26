@@ -2,6 +2,23 @@ from clients.api_client import APIClient
 from httpx import Response
 from typing import TypedDict
 
+from clients.files.files_client import File
+from clients.private_http_builder import get_privet_http_client, AuthenticationUserDict
+from clients.users.public_users_client import User
+
+
+class Course(TypedDict):
+    """
+    Описание структуры курса.
+    """
+    id: str
+    title: str
+    maxScore: int
+    minScore: int
+    description: str
+    previewFile: File
+    estimatedTime: str
+    createdByUser: User
 
 class GetCoursesQueryDict(TypedDict):
     """
@@ -9,7 +26,7 @@ class GetCoursesQueryDict(TypedDict):
     """
     userId: str
 
-class CreateCourseDict(TypedDict):
+class CreateCourseRequestDict(TypedDict):
     """
     Описание структуры запроса на создание курса.
     """
@@ -20,6 +37,13 @@ class CreateCourseDict(TypedDict):
     estimatedTime: str
     previewFileId: str
     createdByUserId: str
+
+
+class CreateCourseResponse(TypedDict):
+    """
+    Описание структуры ответа создания курса.
+    """
+    course: Course
 
 class UpdateCourseDict(TypedDict):
     """
@@ -53,7 +77,7 @@ class CoursesClient(APIClient):
         """
         return self.get(f"/api/v1/courses/{course_id}")
 
-    def create_course_api(self, request: CreateCourseDict) -> Response:
+    def create_course_api(self, request: CreateCourseRequestDict) -> Response:
         """
         Метод создания курса.
 
@@ -81,3 +105,16 @@ class CoursesClient(APIClient):
         :return: Ответ от сервера в виде объекта httpx.Response
         """
         return self.delete(f"/api/v1/courses/{course_id}")
+
+    # Добавили новый метод
+    def create_course(self, request: CreateCourseRequestDict) -> CreateCourseResponse:
+        response = self.create_course_api(request)
+        return response.json()
+
+def get_courses_client(user: AuthenticationUserDict) -> CoursesClient:
+    """
+    Функция создаёт экземпляр CoursesClient с уже настроенным HTTP-клиентом.
+
+    :return: Готовый к использованию CoursesClient.
+    """
+    return CoursesClient(client=get_privet_http_client(user))
